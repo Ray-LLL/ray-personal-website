@@ -204,7 +204,7 @@ h1 {
   max-width: 850px;
   margin-bottom: 22px;
   font-size: clamp(54px, 7.4vw, 104px);
-  line-height: 0.92;
+  line-height: 1;
   letter-spacing: 0;
 }
 
@@ -212,12 +212,14 @@ h1 {
   display: grid;
   max-width: 760px;
   margin-bottom: 26px;
-  gap: 12px;
+  gap: 8px;
+  overflow: visible;
 }
 
 h1 span {
   display: block;
   width: max-content;
+  padding-bottom: 0.08em;
   color: #05060a;
   text-shadow: none;
   background: linear-gradient(135deg, var(--gold), #ffffff 42%, var(--blue));
@@ -233,7 +235,7 @@ h1 span {
   color: #f6f8ff;
   font-size: clamp(44px, 5.1vw, 76px);
   font-style: normal;
-  line-height: 0.98;
+  line-height: 1.02;
 }
 
 .hero-title em b {
@@ -242,7 +244,7 @@ h1 span {
 }
 
 .hero-title em b:last-child {
-  padding-left: clamp(0px, 4vw, 72px);
+  padding-left: 0;
 }
 
 h2 {
