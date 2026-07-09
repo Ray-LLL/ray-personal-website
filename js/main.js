@@ -252,6 +252,11 @@ renderGallery();
 const wallForm = document.querySelector(".wall-form");
 const wallList = document.querySelector(".wall-list");
 const wallSubmitButton = wallForm?.querySelector("button[type='submit']");
+const wallModal = document.querySelector(".wall-modal");
+const wallModalClose = document.querySelector(".wall-modal-close");
+const wallModalName = wallModal?.querySelector("strong");
+const wallModalReview = wallModal?.querySelector("p");
+const wallModalDate = wallModal?.querySelector("small");
 const supabaseUrl = "https://yyhlbkkqilfefkqwiprj.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5aGxia2txaWxmZWZrcXdpcHJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzI2ODEsImV4cCI6MjA5OTE0ODY4MX0.W2L-jqObcpZG1k6Ebmstc75Pb6B0u-WkyOpBakfrldY";
 const wallEndpoint = `${supabaseUrl}/rest/v1/student_messages`;
@@ -301,12 +306,38 @@ function renderWallMessages(messages = []) {
   messages.forEach((message) => {
     const card = document.createElement("article");
     card.className = "wall-message";
+    card.tabIndex = 0;
+    card.setAttribute("role", "button");
+    card.setAttribute("aria-label", `查看 ${message.name} 的完整评价`);
     card.innerHTML = `<strong></strong><p></p><small></small>`;
     card.querySelector("strong").textContent = message.name;
     card.querySelector("p").textContent = message.review;
-    card.querySelector("small").textContent = formatWallDate(message.created_at);
+    const date = formatWallDate(message.created_at);
+    card.querySelector("small").textContent = date;
+    card.addEventListener("click", () => openWallMessage(message.name, message.review, date));
+    card.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openWallMessage(message.name, message.review, date);
+      }
+    });
     wallList.appendChild(card);
   });
+}
+
+function openWallMessage(name, review, date) {
+  if (!wallModal || !wallModalName || !wallModalReview || !wallModalDate) return;
+  wallModalName.textContent = name;
+  wallModalReview.textContent = review;
+  wallModalDate.textContent = date;
+  wallModal.hidden = false;
+  document.body.classList.add("is-lightbox-open");
+}
+
+function closeWallMessage() {
+  if (!wallModal) return;
+  wallModal.hidden = true;
+  document.body.classList.remove("is-lightbox-open");
 }
 
 async function loadWallMessages() {
@@ -354,7 +385,12 @@ lightboxClose?.addEventListener("click", closeLightbox);
 lightbox?.addEventListener("click", (event) => {
   if (event.target === lightbox) closeLightbox();
 });
+wallModalClose?.addEventListener("click", closeWallMessage);
+wallModal?.addEventListener("click", (event) => {
+  if (event.target === wallModal) closeWallMessage();
+});
 window.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && lightbox && !lightbox.hidden) closeLightbox();
   if (event.key === "Escape" && campusModal && !campusModal.hidden) closeCampusModal();
+  if (event.key === "Escape" && wallModal && !wallModal.hidden) closeWallMessage();
 });
