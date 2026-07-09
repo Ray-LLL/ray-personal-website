@@ -284,12 +284,11 @@ async function createWallMessage(name, review) {
       apikey: supabaseKey,
       Authorization: `Bearer ${supabaseKey}`,
       "Content-Type": "application/json",
-      Prefer: "return=representation",
+      Prefer: "return=minimal",
     },
     body: JSON.stringify({ name, review }),
   });
   if (!response.ok) throw new Error("留言发布失败");
-  return response.json();
 }
 
 function renderWallMessages(messages = []) {
@@ -335,6 +334,10 @@ wallForm?.addEventListener("submit", async (event) => {
     await createWallMessage(name.slice(0, 20), review.slice(0, 180));
     wallForm.reset();
     await loadWallMessages();
+    wallList.insertAdjacentHTML(
+      "afterbegin",
+      '<p class="wall-empty wall-success">已提交成功，Ray 审核后会展示在留言墙。</p>'
+    );
   } catch {
     wallList.insertAdjacentHTML("afterbegin", '<p class="wall-empty">发布失败，请稍后再试。</p>');
   } finally {

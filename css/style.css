@@ -1450,6 +1450,10 @@ textarea:focus {
   color: var(--muted);
 }
 
+.wall-success {
+  color: #bfffe7;
+}
+
 .wall-message {
   min-height: 150px;
   padding: 18px;
