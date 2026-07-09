@@ -1431,6 +1431,12 @@ textarea:focus {
   background: rgba(255, 255, 255, 0.05);
 }
 
+.wall-form button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+  transform: none;
+}
+
 .wall-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

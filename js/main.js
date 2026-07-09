@@ -251,36 +251,49 @@ renderGallery();
 
 const wallForm = document.querySelector(".wall-form");
 const wallList = document.querySelector(".wall-list");
-const wallStorageKey = "ray-message-wall";
-const wallSeedMessages = [
-  {
-    name: "Luna",
-    review: "Ray 的课堂让我第一次敢开口说英语，也看见了自己可以变得更自信。",
-    time: "学生评价",
-  },
-  {
-    name: "Jason",
-    review: "不只是学口语，更像是在被推着升级认知、习惯和行动力。",
-    time: "学生评价",
-  },
-];
+const wallSubmitButton = wallForm?.querySelector("button[type='submit']");
+const supabaseUrl = "https://yyhlbkkqilfefkqwiprj.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5aGxia2txaWxmZWZrcXdpcHJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM1NzI2ODEsImV4cCI6MjA5OTE0ODY4MX0.W2L-jqObcpZG1k6Ebmstc75Pb6B0u-WkyOpBakfrldY";
+const wallEndpoint = `${supabaseUrl}/rest/v1/student_messages`;
 
-function readWallMessages() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(wallStorageKey) || "[]");
-    return Array.isArray(saved) && saved.length ? saved : wallSeedMessages;
-  } catch {
-    return wallSeedMessages;
-  }
+function formatWallDate(value) {
+  if (!value) return "刚刚";
+  return new Date(value).toLocaleDateString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
 }
 
-function saveWallMessages(messages) {
-  localStorage.setItem(wallStorageKey, JSON.stringify(messages));
+async function requestWallMessages(path = "") {
+  const response = await fetch(`${wallEndpoint}${path}`, {
+    headers: {
+      apikey: supabaseKey,
+      Authorization: `Bearer ${supabaseKey}`,
+      Accept: "application/json",
+    },
+  });
+  if (!response.ok) throw new Error("留言加载失败");
+  return response.json();
 }
 
-function renderWallMessages() {
+async function createWallMessage(name, review) {
+  const response = await fetch(wallEndpoint, {
+    method: "POST",
+    headers: {
+      apikey: supabaseKey,
+      Authorization: `Bearer ${supabaseKey}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify({ name, review }),
+  });
+  if (!response.ok) throw new Error("留言发布失败");
+  return response.json();
+}
+
+function renderWallMessages(messages = []) {
   if (!wallList) return;
-  const messages = readWallMessages();
   wallList.innerHTML = "";
   if (!messages.length) {
     wallList.innerHTML = '<p class="wall-empty">还没有留言，写下第一条评价吧。</p>';
@@ -292,29 +305,47 @@ function renderWallMessages() {
     card.innerHTML = `<strong></strong><p></p><small></small>`;
     card.querySelector("strong").textContent = message.name;
     card.querySelector("p").textContent = message.review;
-    card.querySelector("small").textContent = message.time || "刚刚";
+    card.querySelector("small").textContent = formatWallDate(message.created_at);
     wallList.appendChild(card);
   });
 }
 
-wallForm?.addEventListener("submit", (event) => {
+async function loadWallMessages() {
+  if (!wallList) return;
+  wallList.innerHTML = '<p class="wall-empty">正在加载真实留言...</p>';
+  try {
+    const messages = await requestWallMessages("?select=id,name,review,created_at&order=created_at.desc&limit=60");
+    renderWallMessages(messages);
+  } catch {
+    wallList.innerHTML = '<p class="wall-empty">留言暂时加载失败，请稍后刷新页面。</p>';
+  }
+}
+
+wallForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(wallForm);
   const name = String(formData.get("studentName") || "").trim();
   const review = String(formData.get("studentReview") || "").trim();
   if (!name || !review) return;
-  const messages = readWallMessages();
-  messages.unshift({
-    name,
-    review,
-    time: new Date().toLocaleDateString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit" }),
-  });
-  saveWallMessages(messages.slice(0, 60));
-  wallForm.reset();
-  renderWallMessages();
+  if (wallSubmitButton) {
+    wallSubmitButton.disabled = true;
+    wallSubmitButton.textContent = "发布中...";
+  }
+  try {
+    await createWallMessage(name.slice(0, 20), review.slice(0, 180));
+    wallForm.reset();
+    await loadWallMessages();
+  } catch {
+    wallList.insertAdjacentHTML("afterbegin", '<p class="wall-empty">发布失败，请稍后再试。</p>');
+  } finally {
+    if (wallSubmitButton) {
+      wallSubmitButton.disabled = false;
+      wallSubmitButton.textContent = "发布留言";
+    }
+  }
 });
 
-renderWallMessages();
+loadWallMessages();
 
 lightboxClose?.addEventListener("click", closeLightbox);
 lightbox?.addEventListener("click", (event) => {
