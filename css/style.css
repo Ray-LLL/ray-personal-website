@@ -208,6 +208,13 @@ h1 {
   letter-spacing: 0;
 }
 
+.hero-title {
+  display: grid;
+  max-width: 760px;
+  margin-bottom: 26px;
+  gap: 12px;
+}
+
 h1 span {
   display: block;
   width: max-content;
@@ -220,10 +227,22 @@ h1 span {
 }
 
 .hero-title em {
-  display: block;
-  max-width: 980px;
+  display: grid;
+  max-width: 720px;
+  gap: 8px;
   color: #f6f8ff;
+  font-size: clamp(44px, 5.1vw, 76px);
   font-style: normal;
+  line-height: 0.98;
+}
+
+.hero-title em b {
+  display: block;
+  font-weight: 900;
+}
+
+.hero-title em b:last-child {
+  padding-left: clamp(0px, 4vw, 72px);
 }
 
 h2 {
@@ -1557,11 +1576,16 @@ textarea:focus {
   }
 
   h1 {
-    font-size: clamp(48px, 18vw, 72px);
+    font-size: clamp(44px, 15vw, 64px);
   }
 
   .hero-title em {
+    font-size: clamp(34px, 10vw, 48px);
     max-width: 100%;
+  }
+
+  .hero-title em b:last-child {
+    padding-left: 0;
   }
 
   .values {
