@@ -1280,6 +1280,17 @@ blockquote {
   gap: 12px;
 }
 
+.gallery-loading {
+  grid-column: 1 / -1;
+  min-height: 190px;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+}
+
 .gallery-card {
   position: relative;
   min-height: 190px;
@@ -1696,6 +1707,10 @@ textarea:focus {
 }
 
 @media (max-width: 640px) {
+  #hero-canvas {
+    opacity: 0.58;
+  }
+
   .site-header {
     padding: 12px 18px;
   }
@@ -1792,5 +1807,16 @@ textarea:focus {
   .recruit-links a {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

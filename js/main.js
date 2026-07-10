@@ -1,10 +1,16 @@
 const canvas = document.querySelector("#hero-canvas");
-const ctx = canvas.getContext("2d");
+const ctx = canvas?.getContext("2d");
 const particles = [];
-const particleCount = 74;
+const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+const mobileViewport = window.matchMedia("(max-width: 640px)");
+let particleCount = mobileViewport.matches ? 30 : 60;
+let networkAnimationId = 0;
+let networkActive = !prefersReducedMotion.matches && !document.hidden;
+let lastNetworkFrame = 0;
 
 function resizeCanvas() {
-  const ratio = Math.min(window.devicePixelRatio || 1, 2);
+  if (!canvas || !ctx) return;
+  const ratio = Math.min(window.devicePixelRatio || 1, mobileViewport.matches ? 1.25 : 2);
   canvas.width = Math.floor(window.innerWidth * ratio);
   canvas.height = Math.floor(window.innerHeight * ratio);
   canvas.style.width = `${window.innerWidth}px`;
@@ -26,7 +32,13 @@ function seedParticles() {
   }
 }
 
-function drawNetwork() {
+function drawNetwork(timestamp = 0) {
+  if (!canvas || !ctx) return;
+  if (networkActive && mobileViewport.matches && timestamp - lastNetworkFrame < 34) {
+    networkAnimationId = requestAnimationFrame(drawNetwork);
+    return;
+  }
+  lastNetworkFrame = timestamp;
   ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
   for (const dot of particles) {
     dot.x += dot.vx;
@@ -63,7 +75,20 @@ function drawNetwork() {
     }
   }
 
-  requestAnimationFrame(drawNetwork);
+  if (networkActive) networkAnimationId = requestAnimationFrame(drawNetwork);
+}
+
+function startNetwork() {
+  if (networkActive || !canvas || !ctx || prefersReducedMotion.matches || document.hidden) return;
+  networkActive = true;
+  lastNetworkFrame = 0;
+  networkAnimationId = requestAnimationFrame(drawNetwork);
+}
+
+function stopNetwork() {
+  networkActive = false;
+  if (networkAnimationId) cancelAnimationFrame(networkAnimationId);
+  networkAnimationId = 0;
 }
 
 resizeCanvas();
@@ -72,6 +97,19 @@ drawNetwork();
 window.addEventListener("resize", () => {
   resizeCanvas();
   seedParticles();
+});
+mobileViewport.addEventListener?.("change", () => {
+  particleCount = mobileViewport.matches ? 30 : 60;
+  resizeCanvas();
+  seedParticles();
+});
+prefersReducedMotion.addEventListener?.("change", () => {
+  if (prefersReducedMotion.matches) stopNetwork();
+  else startNetwork();
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) stopNetwork();
+  else startNetwork();
 });
 
 const navToggle = document.querySelector(".nav-toggle");
@@ -195,12 +233,14 @@ function openLightbox(src, title) {
   document.body.classList.add("is-lightbox-open");
 }
 
-const galleryData = window.rayGalleryData || [];
+const galleryShell = document.querySelector(".gallery-shell");
 const galleryTabs = document.querySelector(".gallery-tabs");
 const galleryGrid = document.querySelector(".gallery-grid");
 const galleryToggle = document.querySelector(".gallery-toggle");
-let activeGalleryKey = galleryData[0]?.key;
+let galleryData = [];
+let activeGalleryKey;
 let galleryExpanded = false;
+let galleryDataPromise;
 const galleryPreviewCount = 8;
 
 function renderGalleryTabs() {
@@ -231,7 +271,7 @@ function renderGallery() {
     const card = document.createElement("button");
     card.type = "button";
     card.className = "gallery-card";
-    card.innerHTML = `<img loading="lazy" src="${image.src}" alt="${image.alt}"><span>${category.label} ${index + 1}</span>`;
+    card.innerHTML = `<img loading="lazy" decoding="async" src="${image.src}" alt="${image.alt}"><span>${category.label} ${index + 1}</span>`;
     card.addEventListener("click", () => openLightbox(image.src, image.alt));
     galleryGrid.appendChild(card);
   });
@@ -243,11 +283,57 @@ function renderGallery() {
 }
 
 galleryToggle?.addEventListener("click", () => {
+  if (!galleryData.length) return;
   galleryExpanded = !galleryExpanded;
   renderGallery();
 });
 
-renderGallery();
+function loadGalleryData() {
+  if (galleryDataPromise) return galleryDataPromise;
+  galleryGrid?.replaceChildren(Object.assign(document.createElement("p"), {
+    className: "gallery-loading",
+    textContent: "正在准备照片...",
+  }));
+  const source = document.querySelector("script[data-gallery-data]")?.dataset.galleryData;
+  galleryDataPromise = new Promise((resolve, reject) => {
+    if (!source) {
+      reject(new Error("图库数据地址缺失"));
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = source;
+    script.async = true;
+    script.onload = () => {
+      galleryData = window.rayGalleryData || [];
+      activeGalleryKey = galleryData[0]?.key;
+      renderGallery();
+      resolve();
+    };
+    script.onerror = () => {
+      galleryGrid?.replaceChildren(Object.assign(document.createElement("p"), {
+        className: "gallery-loading",
+        textContent: "照片加载失败，请稍后刷新。",
+      }));
+      reject(new Error("图库数据加载失败"));
+    };
+    document.head.appendChild(script);
+  });
+  return galleryDataPromise;
+}
+
+if (galleryShell && "IntersectionObserver" in window) {
+  const galleryObserver = new IntersectionObserver(
+    ([entry]) => {
+      if (!entry.isIntersecting) return;
+      loadGalleryData().catch(() => {});
+      galleryObserver.disconnect();
+    },
+    { rootMargin: "700px 0px" }
+  );
+  galleryObserver.observe(galleryShell);
+} else {
+  loadGalleryData().catch(() => {});
+}
 
 const wallForm = document.querySelector(".wall-form");
 const wallList = document.querySelector(".wall-list");

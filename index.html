@@ -9,7 +9,7 @@
       content="Ray 张雷，Milestone Education 大学生英语成长教练，用志识恒和类母语式习得法，帮助大学生把英语变成未来选择权。"
     />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="./css/style.css?v=message-wall-scroll-1" />
+    <link rel="stylesheet" href="./css/style.css?v=performance-1" />
   </head>
   <body>
     <div class="noise" aria-hidden="true"></div>
@@ -59,7 +59,7 @@
 
         <aside class="hero-panel photo-hero" aria-label="Ray 个人照片与数据">
           <figure class="hero-photo">
-            <img src="./assets/images/hero/ray-window.jpg" alt="Ray 在车窗旁远眺雪山草原" />
+            <img fetchpriority="high" decoding="async" src="./assets/images/hero/ray-window.jpg" alt="Ray 在车窗旁远眺雪山草原" />
             <figcaption>
               <span class="status-dot"></span>
               <strong>Ray</strong>
@@ -67,11 +67,11 @@
             </figcaption>
           </figure>
           <figure class="surf-card">
-            <img src="./assets/images/hero/ray-broadway.jpg" alt="Ray 在 Broadway 街景下" />
+            <img loading="lazy" decoding="async" src="./assets/images/hero/ray-broadway.jpg" alt="Ray 在 Broadway 街景下" />
             <figcaption>课堂要专业，人生也要开阔。</figcaption>
           </figure>
           <figure class="tree-card">
-            <img src="./assets/images/hero/ray-tree.jpg" alt="Ray 坐在枯木上的旅行照片" />
+            <img loading="lazy" decoding="async" src="./assets/images/hero/ray-tree.jpg" alt="Ray 坐在枯木上的旅行照片" />
           </figure>
           <div class="stat-grid">
             <div><strong>7+</strong><span>年教龄</span></div>
@@ -409,7 +409,7 @@
         <div class="gallery-shell">
           <div class="gallery-tabs" aria-label="真实瞬间分类"></div>
           <div class="gallery-grid" aria-live="polite"></div>
-          <button class="gallery-toggle" type="button" aria-expanded="false">展开全部</button>
+          <button class="gallery-toggle" type="button" aria-expanded="false" hidden>展开全部</button>
         </div>
       </section>
 
@@ -458,7 +458,7 @@
       <small>© 2026 Ray 张雷. Built from the classroom.</small>
     </footer>
 
-    <script src="./js/gallery-data.js?v=message-wall-scroll-1"></script>
-    <script src="./js/main.js?v=message-wall-scroll-1"></script>
+    <script data-gallery-data="./js/gallery-data.js?v=performance-1"></script>
+    <script src="./js/main.js?v=performance-1"></script>
   </body>
 </html>
